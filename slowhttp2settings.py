@@ -103,7 +103,7 @@ class CSVHandler():
         num = data[0]
         LOGGER.info("Thread %s: starting update", num)
         LOGGER.info("Thread %s: about to lock", num)
-        with self._lock():
+        with self._lock:
             LOGGER.info("Thread %s: has lock", num)
             with open(self.file, mode="a") as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -120,6 +120,6 @@ class Timer():
     
     def step(self):
         while True:
-            step = time.time() - self.start()
+            step = time.time() - self.start
             if(step % self.time_step == 0):
                 return step

