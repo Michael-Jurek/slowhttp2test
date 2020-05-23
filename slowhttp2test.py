@@ -3,13 +3,16 @@ import multiprocessing
 import pathos.multiprocessing
 from slowhttp2settings import LOGGER, WebServerStatus, CSVHandler, Timer, args
 from slowhttp2attack import cons, closed, Attack
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
 MAX_CONS = args.connection
 
 def thread1():
     """First thread with executing timer, server status, datbase handling"""
     while(closed.value<MAX_CONS):
-        status = WebServerStatus(args.address, args.port)
+        status = WebServerStatus(args.target, args.port)
         get_status = status.check_server()
         d = [timer.step(), cons.value - var.value - closed.value if cons.value != 0
              else cons.value - closed.value, MAX_CONS - cons.value + var.value
@@ -27,7 +30,8 @@ def thread2():
 
     with pathos.multiprocessing.ProcessingPool(MAX_CONS) as pool:
         pool.map(attack.start_attack, range(MAX_CONS))
-    print("SLOW"+args.type.toupper()+"ATTACK has been executed successfully on "
+
+    print("SLOW "+args.type.upper()+" ATTACK has been executed successfully on "
           +str(args.connection)+" connections.")
     print("Total execution time is {}s.".format(time.time() - start_time))
 
@@ -47,3 +51,22 @@ if __name__ == '__main__':
     p1.join()
     p2.join()
 
+    df = pd.read_csv(args.out+".csv")
+    fig = go.Figure()
+    fig.update_layout(title="SLOW "+args.type.upper()+" ATTACK against "+
+                      "http://"+str(args.target)+":"+str(args.port),
+                      xaxis_title="Time [s]",
+                      yaxis_title="Number of connections",
+                      font=dict(
+                          size=18,
+                          color="black"
+                      ))
+    fig.add_trace(go.Scatter(x = df['Time'], y = df['Connected'], name="Connected connections",
+                             line_color="yellow", fill="tozeroy"))
+    fig_add_trace(go.Scatter(x = df['Time'], y = df['Pending'], name="Pending attacks",
+                             line_color="blue", fill="tozeroy"))
+    fig.add_trace(go.Scatter(x = df['Time'], y = df['Closed'], name="Closed connections",
+                             line_color="red", fill="tozeroy"))
+    fig.add_trace(go.Scatter(x = df['Time'], y = df['Service_Available'], name="Web server availability",
+                             line_color="lightgreen", fill="tozeroy"))
+    fig.write(args.out+".html", auto_open=True)

