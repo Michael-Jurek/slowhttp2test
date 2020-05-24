@@ -1,3 +1,11 @@
+##############################################################################
+#                                                                            #
+#               SLOW HTTP/2 TEST - Slow DoS simulator                        #
+#               https://github.com/Michael-Jurek/slowhttp2test               #
+#               Author: Michael Jurek                                        #
+#                       xjurek03@stud.feec.vutbr.cz                          #
+#                                                                            #
+##############################################################################
 import sys
 import logging
 import argparse
