@@ -391,5 +391,5 @@ venv/
 
 .vscode/
 
-.html
-.csv
+*.html
+*.csv
