@@ -391,5 +391,5 @@ venv/
 
 .vscode/
 
-output.html
-output.csv
+.html
+.csv
