@@ -99,7 +99,7 @@ class Attack():
             (":authority", args.target),
             (":path", "/"),
             (":scheme", "http"),
-            ("method", method)
+            (":method", method)
         ]
         hf = HeadersFrame(1)
         if method == "GET":

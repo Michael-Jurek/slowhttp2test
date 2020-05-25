@@ -50,7 +50,7 @@ optional arguments:
 ### Example
 Slow Preface Attack on target http://10.0.0.2:80 with 500 openned connection and output to 'test.csv' and 'test.html' and verbose logging
 ```
-python3 slowhttp2test.py 10.0.0.2 preface -p 80 -o test -c  -v
+python3 slowhttp2test.py 10.0.0.2 preface -p 80 -o test -c 500 -v
 ```
 
 Generated graph in file 'test.html':
